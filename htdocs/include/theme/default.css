@@ -1,0 +1,52 @@
+.body-default {
+	font-family: "Arial", "Helvetica", "sans-serif";
+	margin:0px;
+}
+
+.runstatus-prerun {
+	background-color: #EBEBEB;
+}
+
+.runstatus-running {
+	color: #FF0000;
+	background-color: #B9B9FF;
+}
+
+.header {
+	height: 24px;
+	font-style: italic;
+}
+
+.navigation {
+	background-color: #EFEFEF;
+	height: 24px;
+	font-style: italic;
+}
+
+.footer {
+	background-color: #EFEFEF;
+	height: 24px;
+}
+.runstatus-exit-error {
+	color: #330000;
+	background-color: #FFFF33;
+}
+.runstatus-exit-succ {
+	color: #006600;
+	background-color: #9FFF88;
+}
+.toolbar {
+	background-color: #EFEFEF;
+}
+.operation-runstatus {
+	background-color: #CCCCCC;
+	font-weight: bold;
+	font-style: italic;
+}
+.runtstatus-title {
+	background-color: #CCCCCC;
+	font-style: italic;
+	font-weight: bold;
+	height: 24px;
+	color: #006600;
+}

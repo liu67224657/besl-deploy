@@ -1,0 +1,250 @@
+<project name="deploy" default="usage" basedir="../.">
+    <!--the webapps settings-->
+    <path id="basedir.deploy.path">
+        <pathelement path="${basedir}"/>
+    </path>
+    <pathconvert dirsep="/" property="view.deploy.root" refid="basedir.deploy.path"/>
+
+    <!-- set package dirs: -->
+    <condition property="build.package.root" value="c:/ops/online/package">
+        <os family="windows"/>
+    </condition>
+    <condition property="build.package.root" value="/opt/package">
+        <os family="unix"/>
+    </condition>
+
+    <property name="deploy.package.root" value="${build.package.root}/deploytoolkit"/>
+
+    <!--###########################################################-->
+    <!--## usage task                                            ##-->
+    <!--###########################################################-->
+    <target name="usage">
+        <echo taskname="usage" message="USAGE: bld [-v] [-projecthelp] [targets]"/>
+        <echo taskname="usage" message=" "/>
+        <echo taskname="usage" message="-v			 runs ant in verbose mode"/>
+        <echo taskname="usage" message=" "/>
+        <echo taskname="usage" message="-projecthelp   list of valid targets"/>
+        <echo taskname="usage" message=" "/>
+        <echo taskname="usage" message="target		 execute 'bld -projecthelp' for list of valid targets"/>
+        <echo taskname="usage" message=" "/>
+    </target>
+
+    <!--###########################################################-->
+    <!--## Tools webapp target                                   ##-->
+    <!--###########################################################-->
+    <target name="deploy.core"
+            depends="bootstrap,deploy.create.output,deploy.compile,deploy.config"
+            description="build just the deploy webapp"/>
+
+    <target name="package" depends="deploy.htdocs.package" description="package the deploy webapp"/>
+
+    <target name="version" description="build the deploy webapp">
+        <antcall target="marknextversion"/>
+
+        <property name="dversion" value="yes"/>
+
+        <loadproperties srcFile="${basedir}/build/version.file" encoding="utf8"/>
+
+        <antcall target="package"/>
+    </target>
+
+    <!--###########################################################-->
+    <!--## initialization target                                 ##-->
+    <!--## This target expects the following parameters to be    ##-->
+    <!--## defined:                                              ##-->
+    <!--##	${view.webapps.root} - the root webapps directory    ##-->
+    <!--##	${output.stage.root} - the lib output directory      ##-->
+    <!--##	${output.classes.root} - the platform classes dir    ##-->
+    <!--###########################################################-->
+    <target name="bootstrap" unless="bootstrap.complete">
+        <!-- set the java root -->
+        <property name="deploy.java.root" value="${view.deploy.root}/src/main/java"/>
+
+        <!-- set the htdocs root -->
+        <property name="deploy.htdocs.root" value="${view.deploy.root}/htdocs"/>
+        <property name="deploy.lib.root" value="${deploy.htdocs.root}/WEB-INF/lib"/>
+
+        <!-- set default value for working dir (in case it wasn't set above): -->
+        <property name="output.root" value="${view.deploy.root}/build/work"/>
+
+        <!-- set other working dirs: -->
+        <property name="output.classes.root" value="${output.root}/classes"/>
+        <property name="output.stage.root" value="${output.root}/stage"/>
+        <property name="output.props.root" value="${output.root}/classes/props"/>
+
+        <!-- compile-time classpath -->
+        <path id="compiletime.classpath.ref">
+            <!-- the following 3 jars have to appear in a certain order or class conflicts will occur: -->
+            <pathelement location="${deploy.lib.root}"/>
+            <fileset dir="${deploy.htdocs.root}/WEB-INF/lib">
+                <include name="**/*.jar"/>
+            </fileset>
+            <fileset dir="${deploy.lib.root}">
+                <include name="**/*.jar"/>
+            </fileset>
+        </path>
+        <property name="compiletime.classpath" refid="compiletime.classpath.ref"/>
+
+        <!--the compile parameters-->
+        <property name="java.source.encoding" value="utf8"/>
+        <property name="deploy.javac.debug" value="on"/>
+        <property name="deploy.javac.nowarn" value="on"/>
+        <property name="deploy.javac.optimize" value="off"/>
+        <property name="deploy.javac.deprecation" value="off"/>
+
+
+
+        <condition property="build.deploy.version" value="${major.number}.${minor.number}.${build.number}">
+            <isset property="dversion"/>
+        </condition>
+        <property name="build.deploy.version" value="0.0.0.0"/>
+
+
+        <!-- display the directories: -->
+        <echo message="----------------------------------------------------         "/>
+        <echo message="  Deploy tool view root      ${view.deploy.root}             "/>
+        <echo message="   - version                 ${build.deploy.version}         "/>
+        <echo message="   - java                    ${deploy.java.root}             "/>
+        <echo message="   - htdocs                  ${deploy.htdocs.root}           "/>
+        <echo message="   - classes                 ${output.classes.root}          "/>
+        <echo message="   - stage                   ${output.stage.root}            "/>
+        <echo message="   - props                   ${output.props.root}            "/>
+        <echo message="----------------------------------------------------         "/>
+
+        <!-- flag boostrap as complete -->
+        <property name="bootstrap.complete" value="true"/>
+    </target>
+
+    <!--###########################################################-->
+    <!--## webapp preparing target                               ##-->
+    <!--###########################################################-->
+    <target name="deploy.create.output" depends="bootstrap">
+        <!-- create the classes directory: -->
+        <mkdir dir="${output.classes.root}"/>
+
+        <!-- create the stage directory: -->
+        <mkdir dir="${output.stage.root}"/>
+
+        <!-- create the version stamp -->
+        <echo file="${deploy.htdocs.root}/version" message="${build.deploy.version}"/>
+    </target>
+
+    <target name="marknextversion">
+        <buildnumber file="${view.deploy.root}/build/version.file"/>
+    </target>
+    <!--###########################################################-->
+    <!--## webapp compile target                                 ##-->
+    <!--###########################################################-->
+    <target name="deploy.compile" depends="bootstrap,deploy.create.output"
+            description="compile the deploy classes">
+        <!-- compile the pogo webapp classes -->
+        <javac
+                srcdir="${deploy.java.root}"
+                destdir="${output.classes.root}"
+                nowarn="${deploy.javac.nowarn}"
+                debug="${deploy.javac.debug}"
+                optimize="${deploy.javac.optimize}"
+                deprecation="${deploy.javac.deprecation}"
+                includeAntRuntime="no"
+                includeJavaRuntime="yes"
+                encoding="${java.source.encoding}">
+
+            <classpath>
+                <pathelement path="${output.classes.root}"/>
+                <pathelement path="${compiletime.classpath}"/>
+            </classpath>
+
+            <sourcepath>
+                <pathelement location="${deploy.java.root}"/>
+            </sourcepath>
+        </javac>
+    </target>
+
+    <target name="deploy.config" depends="bootstrap"
+            description="copy the deploy config and properties to web-inf classes">
+        <mkdir dir="${deploy.htdocs.root}/WEB-INF/classes"/>
+        <copy todir="${deploy.htdocs.root}/WEB-INF/classes">
+            <fileset dir="${deploy.java.root}">
+                <include name="**/*.xml"/>
+                <include name="**/*.properties"/>
+                <exclude name="**/*_zh_CN.properties"/>
+                <exclude name="build/**"/>
+                <exclude name="work/**"/>
+            </fileset>
+        </copy>
+
+        <native2ascii encoding="utf-8" dest="${deploy.htdocs.root}/WEB-INF/classes" src="${deploy.java.root}"
+                      ext="_zh_CN.properties">
+            <include name="**/*_zh_CN.properties"/>
+            <exclude name="build/**"/>
+            <exclude name="work/**"/>
+        </native2ascii>
+    </target>
+
+    <!--###########################################################-->
+    <!--## webapps jar or tar target                             ##-->
+    <!--###########################################################-->
+    <target name="deploy.java.jar" depends="deploy.compile" description="builds the deploy-java.jar">
+        <mkdir dir="${output.stage.root}"/>
+        <jar destfile="${output.stage.root}/deploy-java.jar">
+            <fileset dir="${output.classes.root}">
+                <include name="com/**/*.class"/>
+            </fileset>
+            <fileset dir="${deploy.java.root}">
+                <include name="com/**/*.xml"/>
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="deploy.htdocs.tar" depends="deploy.config,deploy.java.jar"
+            description="creates the deploy-htdocs.tar for deployment">
+        <copy todir="${deploy.htdocs.root}/WEB-INF/lib">
+            <fileset dir="${output.stage.root}">
+                <include name="**/*.jar"/>
+            </fileset>
+        </copy>
+
+        <tar destfile="${output.stage.root}/deploy-htdocs.tar" longfile="warn">
+            <tarfileset dir="${deploy.htdocs.root}">
+                <include name="**/*"/>
+            </tarfileset>
+        </tar>
+    </target>
+
+    <target name="deploy.htdocs.package" depends="deploy.htdocs.tar"
+            description="move the htdocs.tar to package dir">
+        <copy file="${output.stage.root}/deploy-htdocs.tar"
+              tofile="${deploy.package.root}/${build.deploy.version}.tar"/>
+    </target>
+
+    <!--###########################################################-->
+    <!--## webapp.clean target                                   ##-->
+    <!--###########################################################-->
+    <target name="clean" depends="bootstrap" description="deletes all class files.">
+        <!-- Delete the files generated by the build -->
+        <delete quiet="true" includeemptydirs="true">
+            <fileset dir="${output.stage.root}" casesensitive="yes" followsymlinks="false">
+                <include name="**/*"/>
+            </fileset>
+        </delete>
+
+        <delete quiet="true" includeemptydirs="true">
+            <fileset dir="${output.classes.root}" casesensitive="yes" followsymlinks="false">
+                <include name="**/*"/>
+            </fileset>
+        </delete>
+
+        <delete quiet="true" includeemptydirs="true">
+            <fileset dir="${deploy.htdocs.root}/WEB-INF/classes" casesensitive="yes" followsymlinks="false">
+                <include name="**/*"/>
+            </fileset>
+        </delete>
+
+        <delete quiet="true">
+            <fileset dir="${deploy.htdocs.root}/WEB-INF/lib" casesensitive="yes" followsymlinks="false">
+                <include name="deploy-java.jar"/>
+            </fileset>
+        </delete>
+    </target>
+</project>
+

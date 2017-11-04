@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+        "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+    <package name="deploy" namespace="" extends="struts-default">
+        <global-results>
+            <result name="deploy-login" type="redirect-action">login.cgi</result>
+            <result name="deploy-no-access">/view/login/noaccess.jsp</result>
+        </global-results>
+
+        <action name="login" class="com.fivewh.deploy.html.action.LoginAction">
+            <result type="redirect-action">envlist.cgi</result>
+            <result name="failure">/view/login/loginform.jsp</result>
+        </action>
+
+        <action name="logout" class="com.fivewh.deploy.html.action.LogoutAction">
+            <result type="redirect-action">login.cgi</result>
+        </action>
+
+        <action name="envlist" class="com.fivewh.deploy.html.action.EnvAction">
+            <result>/view/deploy/envlist.jsp</result>
+        </action>
+
+        <action name="operationlist" class="com.fivewh.deploy.html.action.OperationListAction">
+            <result>/view/deploy/operationlist.jsp</result>
+        </action>
+
+        <action name="ops" class="com.fivewh.deploy.html.action.OpsAction">
+            <result>/view/operation/ops.jsp</result>
+        </action>
+
+        <action name="build" class="com.fivewh.deploy.html.action.BuildAction">
+            <result>/view/operation/build.jsp</result>
+        </action>
+
+        <action name="wsbuild" class="com.fivewh.deploy.html.action.WsBuildAction">
+            <result>/view/operation/wsbuild.jsp</result>
+        </action>
+
+        <action name="deploy" class="com.fivewh.deploy.html.action.DeployAction">
+            <result>/view/operation/deploy.jsp</result>
+        </action>
+
+        <action name="wsdeploy" class="com.fivewh.deploy.html.action.WsDeployAction">
+            <result>/view/operation/wsdeploy.jsp</result>
+        </action>
+
+        <action name="release" class="com.fivewh.deploy.html.action.ReleaseAction">
+            <result>/view/operation/release.jsp</result>
+        </action>
+
+        <action name="hotdeploy" class="com.fivewh.deploy.html.action.HotdeployAction">
+            <result>/view/operation/hotdeploy.jsp</result>
+        </action>
+
+        <action name="wshotdeploy" class="com.fivewh.deploy.html.action.WsHotdeployAction">
+            <result>/view/operation/wshotdeploy.jsp</result>
+        </action>
+
+        <action name="patch" class="com.fivewh.deploy.html.action.PatchAction">
+            <result>/view/operation/patch.jsp</result>
+        </action>
+        
+        <action name="newsdeploy" class="com.fivewh.deploy.html.action.NewsDeployAction">
+            <result>/view/operation/newsdeploy.jsp</result>
+        </action>
+        
+        <action name="tpbuild" class="com.fivewh.deploy.html.action.TpBuildAction">
+            <result>/view/operation/tpbuild.jsp</result>
+        </action>
+
+        <action name="tpdeploy" class="com.fivewh.deploy.html.action.TpDeployAction">
+            <result>/view/operation/tpdeploy.jsp</result>
+        </action>
+        <action name="tpserver" class="com.fivewh.deploy.html.action.TpServerAction">
+            <result>/view/operation/tpserver.jsp</result>
+        </action>
+    </package>
+</struts>
